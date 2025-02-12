@@ -14,72 +14,45 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 	<head>
 		<BaseHead title={title} description={description} />
 		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.hero-image {
-				width: 100%;
-			}
-			.hero-image img {
-				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
-			}
-			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: rgb(var(--gray-dark));
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
+			
 		</style>
 	</head>
 
-	<body>
+	<body class="h-lvh overflow-hidden bg-[url('/patterns/16.svg')]">
 		<Header />
-		<main>
-			<article>
-				<div class="hero-image">
-					{heroImage && <img width={1020} height={510} src={heroImage} alt="" />}
+		<main class="max-w-5xl mx-auto px-4 h-[calc(100vh-124px)]">
+			<article class="border mt-[40px] h-full bg-white flex flex-col drop-shadow-[3px_3px_0_rgba(0,0,0,1)]">
+				<div class="border-b py-1 px-4 flex items-center gap-4">
+					<a href="/blog">
+					<div class="size-[14px] border hover:bg-black"></div>
+				</a>
+				  <h1 class="uppercase "><FormattedDate date={pubDate} /></h1>
+				  <div class="flex-grow flex-col gap-[2px]">
+					<div class="border-t mb-[2px]"></div>
+					<div class="border-t mb-[2px]"></div>
+					<div class="border-t mb-[2px]"></div>
+					<div class="border-t mb-[2px]"></div>
+					<div class="border-t "></div>
+				  </div>
 				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{
-								updatedDate && (
-									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
-									</div>
-								)
-							}
-						</div>
-						<h1>{title}</h1>
-						<hr />
+				<div class="overflow-y-auto flex-1 px-4 lg:px-8 py-6">
+					<div class="hero-image">
+						{heroImage && <img width={1020} height={510} src={heroImage} alt="" />}
 					</div>
-					<slot />
-				</div>
+					<div class=" font-mono">
+						<div class="title">
+							
+							<h1 class="font-sans text-3xl uppercase mb-2">{title}</h1>
+							<p class="text-lg mb-6">{description}</p>
+							<hr class="mb-6 border-dashed">
+						</div>
+						<div class="prose min-w-full text-black">
+						<slot />
+					</div>
+					</div>
+					</div>
 			</article>
 		</main>
-		<Footer />
+		
 	</body>
 </html>
