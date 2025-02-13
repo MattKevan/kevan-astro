@@ -5,52 +5,140 @@ import Footer from '../../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 import { getCollection } from 'astro:content';
 import FormattedDate from '../../components/FormattedDate.astro';
-
 const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+ (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
-
 <!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		
-	</head>
-	<body class="h-lvh overflow-hidden bg-[url('/patterns/16.svg')]">
-		<Header />
-		<main class="max-w-5xl mx-auto px-4 h-[calc(100vh-124px)]"> <!-- Adjust 64px based on your header height -->
-		  <section class="border mt-[40px] h-full bg-white flex flex-col drop-shadow-[3px_3px_0_rgba(0,0,0,1)]">
-			<div class="border-b py-1 px-4 flex items-center gap-4">
-				<a href="/">
-				<div class="size-[14px] border hover:bg-black"></div>
+<head>
+<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+</head>
+<body class="h-lvh overflow-hidden bg-[url('/patterns/16.svg')]">
+	<Header />
+	<main class="h-[calc(100vh-124px)]">
+		<div id="blog-container" class=" mx-auto h-full relative">
+		  <section 
+			id="blog-window" 
+			class="border bg-white flex flex-col max-w-5xl mx-auto absolute top-[20px] lg:top-[40px] h-[calc(100vh-124px)]"
+			style="width: calc(100% - 32px); left: 50%; transform: translateX(-50%);"
+		  >
+			<!-- Add shadow as pseudo-element to prevent tearing -->
+			<div class="absolute inset-0 -z-10 translate-x-[3px] translate-y-[3px] bg-black pointer-events-none"></div>
+			
+			<div 
+			  id="drag-handle" 
+			  class="border-b py-1 px-4 flex items-center gap-4 cursor-move select-none bg-gray-50 touch-none"
+			>
+			<a href="/">
+			  <div class="size-[14px] border hover:bg-black"></div>
 			</a>
-			  <h1 class="uppercase ">Blog</h1>
-			  <div class="flex-grow flex-col gap-[2px]">
-				<div class="border-t mb-[2px]"></div>
-				<div class="border-t mb-[2px]"></div>
-				<div class="border-t mb-[2px]"></div>
-				<div class="border-t mb-[2px]"></div>
-				<div class="border-t "></div>
-			  </div>
+			<h1 class="uppercase">Blog</h1>
+			<div class="flex-grow flex-col gap-[2px]">
+			  <div class="border-t mb-[2px]"></div>
+			  <div class="border-t mb-[2px]"></div>
+			  <div class="border-t mb-[2px]"></div>
+			  <div class="border-t mb-[2px]"></div>
+			  <div class="border-t"></div>
 			</div>
-			<div class="overflow-y-auto flex-1 px-4 lg:px-8 py-6">
-			  <ul class="space-y-6">
-				{posts.map((post) => (
-				  <li class=" transition-colors border-b border-dashed">
-					<a href={`/blog/${post.id}/`} class="block pb-6 ">
-						<p class="date text-xs mb-2">
-						<FormattedDate date={post.data.pubDate} />
-					  </p>
-					  <h2 class="title text-2xl uppercase mb-2 hover:underline">{post.data.title}</h2>
-					  
-					  <p>{post.data.description}</p>
-					</a>
-				  </li>
-				))}
-			  </ul>
-			</div>
-		  </section>
-		</main>
-	  </body>
-</html>
+		  </div>
+		  <div class="overflow-y-auto flex-1 px-4 lg:px-8 py-6 bg-white">
+			<ul class="space-y-6">
+			  {posts.map((post) => (
+				<li class="transition-colors border-b border-dashed">
+				  <a href={`/blog/${post.id}/`} class="block pb-6">
+					<p class="date text-xs mb-2">
+					  <FormattedDate date={post.data.pubDate} />
+					</p>
+					<h2 class="title text-2xl uppercase mb-2 hover:underline">{post.data.title}</h2>
+					<p>{post.data.description}</p>
+				  </a>
+				</li>
+			  ))}
+			</ul>
+		  </div>
+		</section>
+	  </div>
+	</main>
+	</body>
+	
+	<script>
+		let isDragging = false;
+		let currentX = 0;
+		let currentY = 0;
+		let startX = 0;
+		let startY = 0;
+		let isWideScreen = false;
+		let hasBeenDragged = false;
+	  
+		const blogWindow = document.getElementById("blog-window");
+		const dragHandle = document.getElementById("drag-handle");
+		const container = document.getElementById("blog-container");
+	  
+		function checkScreenWidth() {
+		  if (!container || !blogWindow) return;
+		  const containerWidth = container.getBoundingClientRect().width;
+		  isWideScreen = containerWidth >= 1024;
+	  
+		  if (!isWideScreen) {
+			blogWindow.style.left = '50%';
+			blogWindow.style.transform = 'translateX(-50%)';
+			blogWindow.style.top = '20px';
+			hasBeenDragged = false;
+			dragHandle?.classList.remove('cursor-move');
+		  } else if (dragHandle) {
+			dragHandle.classList.add('cursor-move');
+			blogWindow.style.top = '40px';
+		  }
+		}
+	  
+		function onMouseDown(e: MouseEvent) {
+		  if (!blogWindow || !isWideScreen || !container) return;
+		  
+		  isDragging = true;
+		  const containerRect = container.getBoundingClientRect();
+		  const windowRect = blogWindow.getBoundingClientRect();
+	  
+		  // If not yet dragged, we need to account for the transform
+		  if (!hasBeenDragged) {
+			blogWindow.style.transform = 'none';
+			blogWindow.style.left = `${windowRect.left - containerRect.left}px`;
+			blogWindow.style.top = `${windowRect.top - containerRect.top}px`;
+		  }
+	  
+		  startX = e.clientX - (windowRect.left - containerRect.left);
+		  startY = e.clientY - (windowRect.top - containerRect.top);
+		}
+	  
+		function onMouseMove(e: MouseEvent) {
+		  if (!isDragging || !blogWindow || !container || !isWideScreen) return;
+	  
+		  e.preventDefault();
+		  hasBeenDragged = true;
+		  
+		  const containerRect = container.getBoundingClientRect();
+		  
+		  currentX = Math.min(
+			Math.max(0, e.clientX - startX),
+			containerRect.width - blogWindow.offsetWidth
+		  );
+		  
+		  currentY = Math.max(0, e.clientY - startY);
+	  
+		  blogWindow.style.left = `${currentX}px`;
+		  blogWindow.style.top = `${currentY}px`;
+		}
+	  
+		function onMouseUp() {
+		  isDragging = false;
+		}
+	  
+		checkScreenWidth();
+		window.addEventListener('resize', checkScreenWidth);
+	  
+		if (dragHandle) {
+		  dragHandle.addEventListener('mousedown', onMouseDown);
+		  document.addEventListener('mousemove', onMouseMove);
+		  document.addEventListener('mouseup', onMouseUp);
+		}
+	  </script>
